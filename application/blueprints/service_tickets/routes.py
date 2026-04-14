@@ -2,7 +2,7 @@ from flask import  request, jsonify
 from marshmallow import ValidationError
 
 from .schemas import service_ticket_schema, service_tickets_schema
-from application.models import ServiceTickets, db
+from application.models import ServiceTicket, Mechanic, db
 from . import service_ticket_bp
 
 @service_ticket_bp.route("/", methods=["POST"])
@@ -13,7 +13,7 @@ def create_service_ticket():
     except ValidationError as err:
         return jsonify(err.messages), 400
     
-    new_service_ticket = ServiceTickets(**service_ticket_data)
+    new_service_ticket = ServiceTicket(**service_ticket_data)
     db.session.add(new_service_ticket)
     db.session.commit()
 
@@ -26,7 +26,7 @@ def create_service_ticket():
 @service_ticket_bp.route("/<int:service_ticket_id>", methods=["GET"])
 def get_service_ticket(service_ticket_id):
     try:
-        service_ticket_data = db.session.get(ServiceTickets, service_ticket_id)
+        service_ticket_data = db.session.get(ServiceTicket, service_ticket_id)
         
     except ValidationError as err:
         return jsonify(err.messages), 400
@@ -36,45 +36,41 @@ def get_service_ticket(service_ticket_id):
 
 
 @service_ticket_bp.route("/", methods=["GET"])
-def get_service_ticket_bps():
+def get_service_tickets():
     try:
-        service_ticket_bps_data = db.session.query(ServiceTickets).all()
+        service_tickets_data = db.session.query(ServiceTicket).all()
         
     except ValidationError as err:
         return jsonify(err.messages), 400
      
 
-    return service_ticket_schema.jsonify(service_ticket_bps_data), 200
+    return service_tickets_schema.jsonify(service_tickets_data), 200
 
 
 #========== Update ===========
 
 
-@service_ticket_bp.route("/<int:service_ticket_id>", methods=["PUT"])
-def update_service_ticket(service_ticket_id):
-    try:
-        service_ticket_data = service_ticket_schema.load(request.json)
-    except ValidationError as err:
-        return jsonify(err.messages), 400
+@service_ticket_bp.route("/<int:service_ticket_id>/assign_mechanic/<int:mechanic_id>", methods=["PUT"])
+def assign_mechanic_to_service_ticket(service_ticket_id, mechanic_id):
 
-    service_ticket = db.session.get(ServiceTickets, service_ticket_id)
+    service_ticket = db.session.get(ServiceTicket, service_ticket_id)
     if not service_ticket:
         return jsonify({"error": "service_ticket not found"}), 404
-
-    service_ticket.name = service_ticket_data.get("name", service_ticket.name)
-    service_ticket.email = service_ticket_data.get("email", service_ticket.email)
-    service_ticket.address = service_ticket_data.get("address", service_ticket.address)
-
+    
+    mechanic = db.session.get(Mechanic, mechanic_id)
+    if not mechanic:
+        return jsonify({"error": "mechanic not found"}), 404
+    
+    service_ticket.mechanics.append(mechanic)
     db.session.commit()
     return service_ticket_schema.jsonify(service_ticket), 200
-
 
 #========== Delete ===========
 
 
 @service_ticket_bp.route("/<int:service_ticket_id>", methods=["DELETE"])
 def delete_service_ticket(service_ticket_id):
-    service_ticket = db.session.get(ServiceTickets, service_ticket_id)
+    service_ticket = db.session.get(ServiceTicket, service_ticket_id)
     if not service_ticket:
         return jsonify({"error": "service_ticket not found"}), 404
 
