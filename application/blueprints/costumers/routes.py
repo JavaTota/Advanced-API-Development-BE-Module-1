@@ -53,7 +53,7 @@ def get_costumers():
 @costumer_bp.route("/<int:costumer_id>", methods=["PUT"])
 def update_costumer(costumer_id):
     try:
-        costumer_data = request.get_json() or {}
+        costumer_data = costumer_schema.load(request.json)
     except ValidationError as err:
         return jsonify(err.messages), 400
 
