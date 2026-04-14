@@ -1,0 +1,434 @@
+{
+  "info": {
+    "_postman_id": "214de259-a3dc-411e-a072-1fd7eefab366",
+    "name": "Mechanic",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "43763878"
+  },
+  "item": [
+    {
+      "name": "Costumer",
+      "item": [
+        {
+          "name": "Create new Costumer",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"name\": \"mateo\",\r\n  \"phone\": \"3127356139\",\r\n  \"email\": \"mateo@email.com\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{URL}}/costumers",
+              "host": [
+                "{{URL}}"
+              ],
+              "path": [
+                "costumers"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get all costumers",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{URL}}/costumers",
+              "host": [
+                "{{URL}}"
+              ],
+              "path": [
+                "costumers"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get costumer by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{URL}}/costumers/2",
+              "host": [
+                "{{URL}}"
+              ],
+              "path": [
+                "costumers",
+                "2"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Costumer",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"email\": \"alessadnra@email.com\",\r\n    \"name\": \"alessadnra\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{URL}}/costumers/4",
+              "host": [
+                "{{URL}}"
+              ],
+              "path": [
+                "costumers",
+                "4"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Costumer",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "DELETE",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"name\": \"mateo\",\r\n  \"email\": \"mateo@email.com\",\r\n  \"address\": \"Chicago\"\r\n}"
+            },
+            "url": {
+              "raw": "{{URL}}/costumers/4",
+              "host": [
+                "{{URL}}"
+              ],
+              "path": [
+                "costumers",
+                "4"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "ServiceTickets",
+      "item": [
+        {
+          "name": "Create new Ticket",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"VIN\": \"1HGCM82633A123456\",\r\n  \"service_date\": \"2026-04-14T10:30:00\",\r\n  \"service_desc\": \"Oil change and brake inspection\",\r\n  \"costumer_id\": 3\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{URL}}/service_tickets",
+              "host": [
+                "{{URL}}"
+              ],
+              "path": [
+                "service_tickets"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get all Ticket",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{URL}}/service_tickets",
+              "host": [
+                "{{URL}}"
+              ],
+              "path": [
+                "service_tickets"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Ticket by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{URL}}/service_tickets/2",
+              "host": [
+                "{{URL}}"
+              ],
+              "path": [
+                "service_tickets",
+                "2"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Assign Mechanic to Ticket",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"email\": \"ana@email.com\",\r\n    \"name\": \"ana\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{URL}}/service_tickets/2/assign_mechanic/1",
+              "host": [
+                "{{URL}}"
+              ],
+              "path": [
+                "service_tickets",
+                "2",
+                "assign_mechanic",
+                "1"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Remove Mechanic from Ticket",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"email\": \"ana@email.com\",\r\n    \"name\": \"ana\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{URL}}/service_tickets/3/remove_mechanic/1",
+              "host": [
+                "{{URL}}"
+              ],
+              "path": [
+                "service_tickets",
+                "3",
+                "remove_mechanic",
+                "1"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Ticket",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "DELETE",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"name\": \"mateo\",\r\n  \"email\": \"mateo@email.com\",\r\n  \"address\": \"Chicago\"\r\n}"
+            },
+            "url": {
+              "raw": "{{URL}}/service_tickets/1",
+              "host": [
+                "{{URL}}"
+              ],
+              "path": [
+                "service_tickets",
+                "1"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Mechanics",
+      "item": [
+        {
+          "name": "Create new Mechanics",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"name\": \"mateo\",\r\n  \"email\": \"mateo@email.com\",\r\n  \"salary\": \"1000\",\r\n  \"phone\" : \"3127356139\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{URL}}/mechanics",
+              "host": [
+                "{{URL}}"
+              ],
+              "path": [
+                "mechanics"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get all Mechanics",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{URL}}/mechanics",
+              "host": [
+                "{{URL}}"
+              ],
+              "path": [
+                "mechanics"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Mechanics by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{URL}}/mechanics/1",
+              "host": [
+                "{{URL}}"
+              ],
+              "path": [
+                "mechanics",
+                "1"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Mechanics",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"email\": \"ana@email.com\",\r\n    \"name\": \"ana\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{URL}}/mechanics/2",
+              "host": [
+                "{{URL}}"
+              ],
+              "path": [
+                "mechanics",
+                "2"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Mechanics",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "DELETE",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"name\": \"mateo\",\r\n  \"email\": \"mateo@email.com\",\r\n  \"address\": \"Chicago\"\r\n}"
+            },
+            "url": {
+              "raw": "{{URL}}/mechanics/1",
+              "host": [
+                "{{URL}}"
+              ],
+              "path": [
+                "mechanics",
+                "1"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "packages": {},
+        "requests": {},
+        "exec": [
+          ""
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "packages": {},
+        "requests": {},
+        "exec": [
+          ""
+        ]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "URL",
+      "value": ""
+    }
+  ]
+}

@@ -53,7 +53,7 @@ def get_costumers():
 @costumer_bp.route("/<int:costumer_id>", methods=["PUT"])
 def update_costumer(costumer_id):
     try:
-        costumer_data = costumer_schema.load(request.json)
+        costumer_data = costumer_schema.load(request.json, partial=True)
     except ValidationError as err:
         return jsonify(err.messages), 400
 
@@ -61,9 +61,8 @@ def update_costumer(costumer_id):
     if not costumer:
         return jsonify({"error": "Costumer not found"}), 404
 
-    costumer.name = costumer_data.get("name", costumer.name)
-    costumer.email = costumer_data.get("email", costumer.email)
-    costumer.address = costumer_data.get("address", costumer.address)
+    for key, value in costumer_data.items():
+        setattr(costumer, key, value)
 
     db.session.commit()
     return costumer_schema.jsonify(costumer), 200

@@ -56,7 +56,7 @@ def get_mechanics():
 @mechanic_bp.route("/<int:mechanic_id>", methods=["PUT"])
 def update_mechanic(mechanic_id):
     try:
-        mechanic_data = mechanic_schema.load(request.json)
+        mechanic_data = mechanic_schema.load(request.json, partial=True)
     except ValidationError as err:
         return jsonify(err.messages), 400
 
@@ -64,9 +64,8 @@ def update_mechanic(mechanic_id):
     if not mechanic:
         return jsonify({"error": "Mechanic not found"}), 404
 
-    mechanic.name = mechanic_data.get("name", mechanic.name)
-    mechanic.email = mechanic_data.get("email", mechanic.email)
-    mechanic.phone = mechanic_data.get("phone", mechanic.phone)
+    for key, value in mechanic_data.items():
+        setattr(mechanic, key, value)
 
     db.session.commit()
     return mechanic_schema.jsonify(mechanic), 200
