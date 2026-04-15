@@ -4,8 +4,10 @@ from marshmallow import ValidationError
 from .schemas import mechanic_schema, mechanics_schema
 from application.models import  Mechanic, db
 from . import mechanic_bp
+from application.extensions import limiter
 
 @mechanic_bp.route("/", methods=["POST"])
+@limiter.limit("5 per day")
 def create_mechanic():
     try:
         mechanic_data = mechanic_schema.load(request.json)
@@ -54,6 +56,7 @@ def get_mechanics():
 
 
 @mechanic_bp.route("/<int:mechanic_id>", methods=["PUT"])
+@limiter.limit("5 per month")
 def update_mechanic(mechanic_id):
     try:
         mechanic_data = mechanic_schema.load(request.json, partial=True)
@@ -75,6 +78,7 @@ def update_mechanic(mechanic_id):
 
 
 @mechanic_bp.route("/<int:mechanic_id>", methods=["DELETE"])
+@limiter.limit("5 per year")
 def delete_mechanic(mechanic_id):
     mechanic = db.session.get(Mechanic, mechanic_id)
     if not mechanic:

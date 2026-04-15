@@ -4,8 +4,10 @@ from marshmallow import ValidationError
 from .schemas import service_ticket_schema, service_tickets_schema
 from application.models import ServiceTicket, Mechanic, db
 from . import service_ticket_bp
+from application.extensions import limiter
 
 @service_ticket_bp.route("/", methods=["POST"])
+@limiter.limit("5 per day")
 def create_service_ticket():
     try:
         service_ticket_data = service_ticket_schema.load(request.json)
@@ -51,6 +53,7 @@ def get_service_tickets():
 
 
 @service_ticket_bp.route("/<int:service_ticket_id>/assign_mechanic/<int:mechanic_id>", methods=["PUT"])
+@limiter.limit("5 per month")
 def assign_mechanic_to_service_ticket(service_ticket_id, mechanic_id):
 
     service_ticket = db.session.get(ServiceTicket, service_ticket_id)
@@ -66,6 +69,7 @@ def assign_mechanic_to_service_ticket(service_ticket_id, mechanic_id):
     return service_ticket_schema.jsonify(service_ticket), 200
 
 @service_ticket_bp.route("/<int:service_ticket_id>/remove_mechanic/<int:mechanic_id>", methods=["PUT"])
+@limiter.limit("5 per month")
 def remove_mechanic_from_service_ticket(service_ticket_id, mechanic_id):
 
     service_ticket = db.session.get(ServiceTicket, service_ticket_id)
@@ -84,6 +88,7 @@ def remove_mechanic_from_service_ticket(service_ticket_id, mechanic_id):
 
 
 @service_ticket_bp.route("/<int:service_ticket_id>", methods=["DELETE"])
+@limiter.limit("5 per year")
 def delete_service_ticket(service_ticket_id):
     service_ticket = db.session.get(ServiceTicket, service_ticket_id)
     if not service_ticket:

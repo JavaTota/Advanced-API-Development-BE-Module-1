@@ -4,8 +4,10 @@ from marshmallow import ValidationError
 from .schemas import costumer_schema, costumers_schema
 from application.models import Costumer, db
 from . import costumer_bp
+from application.extensions import limiter
 
 @costumer_bp.route("/", methods=["POST"])
+@limiter.limit("5 per day")
 def create_costumer():
     try:
         costumer_data = costumer_schema.load(request.json)
@@ -51,6 +53,7 @@ def get_costumers():
 
 
 @costumer_bp.route("/<int:costumer_id>", methods=["PUT"])
+@limiter.limit("5 per month")
 def update_costumer(costumer_id):
     try:
         costumer_data = costumer_schema.load(request.json, partial=True)
@@ -72,6 +75,7 @@ def update_costumer(costumer_id):
 
 
 @costumer_bp.route("/<int:costumer_id>", methods=["DELETE"])
+@limiter.limit("5 per year")
 def delete_costumer(costumer_id):
     costumer = db.session.get(Costumer, costumer_id)
     if not costumer:
