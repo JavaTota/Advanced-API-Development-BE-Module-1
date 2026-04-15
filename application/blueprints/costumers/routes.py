@@ -4,7 +4,7 @@ from marshmallow import ValidationError
 from .schemas import costumer_schema, costumers_schema
 from application.models import Costumer, db
 from . import costumer_bp
-from application.extensions import limiter
+from application.extensions import limiter,cache
 
 @costumer_bp.route("/", methods=["POST"])
 @limiter.limit("5 per day")
@@ -26,6 +26,7 @@ def create_costumer():
 
 
 @costumer_bp.route("/<int:costumer_id>", methods=["GET"])
+@cache.cached(timeout=60)  # Cache this endpoint for 60 seconds
 def get_costumer(costumer_id):
     try:
         costumer_data = db.session.get(Costumer, costumer_id)
@@ -38,6 +39,7 @@ def get_costumer(costumer_id):
 
 
 @costumer_bp.route("/", methods=["GET"])
+@cache.cached(timeout=60)  # Cache this endpoint for 60 seconds
 def get_costumers():
     try:
         costumers_data = db.session.query(Costumer).all()

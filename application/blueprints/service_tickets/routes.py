@@ -4,7 +4,7 @@ from marshmallow import ValidationError
 from .schemas import service_ticket_schema, service_tickets_schema
 from application.models import ServiceTicket, Mechanic, db
 from . import service_ticket_bp
-from application.extensions import limiter
+from application.extensions import limiter, cache
 
 @service_ticket_bp.route("/", methods=["POST"])
 @limiter.limit("5 per day")
@@ -26,6 +26,7 @@ def create_service_ticket():
 
 
 @service_ticket_bp.route("/<int:service_ticket_id>", methods=["GET"])
+@cache.cached(timeout=60)  # Cache this endpoint for 60 seconds
 def get_service_ticket(service_ticket_id):
     try:
         service_ticket_data = db.session.get(ServiceTicket, service_ticket_id)
@@ -38,6 +39,7 @@ def get_service_ticket(service_ticket_id):
 
 
 @service_ticket_bp.route("/", methods=["GET"])
+@cache.cached(timeout=60)  # Cache this endpoint for 60 seconds
 def get_service_tickets():
     try:
         service_tickets_data = db.session.query(ServiceTicket).all()

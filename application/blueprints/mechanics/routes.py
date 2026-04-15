@@ -4,7 +4,7 @@ from marshmallow import ValidationError
 from .schemas import mechanic_schema, mechanics_schema
 from application.models import  Mechanic, db
 from . import mechanic_bp
-from application.extensions import limiter
+from application.extensions import limiter, cache
 
 @mechanic_bp.route("/", methods=["POST"])
 @limiter.limit("5 per day")
@@ -26,6 +26,7 @@ def create_mechanic():
 
 
 @mechanic_bp.route("/<int:mechanic_id>", methods=["GET"])
+@cache.cached(timeout=60)  # Cache this endpoint for 60 seconds
 def get_mechanic(mechanic_id):
     try:
         mechanic_data = db.session.get(Mechanic, mechanic_id)
@@ -38,6 +39,7 @@ def get_mechanic(mechanic_id):
 
 
 @mechanic_bp.route("/", methods=["GET"])
+@cache.cached(timeout=60)  # Cache this endpoint for 60 seconds
 def get_mechanics():
     try:
         mechanics_data = db.session.query(Mechanic).all()
