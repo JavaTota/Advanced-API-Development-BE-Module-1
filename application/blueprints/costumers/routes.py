@@ -9,6 +9,9 @@ from . import costumer_bp
 from application.extensions import limiter,cache
 from application.utils.util import encode_token, token_required
 
+
+#========== Authentication ===========
+
 @costumer_bp.route("/login", methods=['POST'])
 def login():
     try:
@@ -33,6 +36,9 @@ def login():
         return jsonify(response), 200
     else:
         return jsonify({'messages': "Invalid email or password"}), 401
+
+
+#========= Create ===========
 
 @costumer_bp.route("/", methods=["POST"])
 @limiter.limit("5 per day")

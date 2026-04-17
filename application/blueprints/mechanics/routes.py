@@ -51,7 +51,20 @@ def get_mechanics():
 
     return mechanics_schema.jsonify(mechanics_data), 200
 
+#========= Get Popular Mechanics(sorting) ===========
 
+@mechanic_bp.route("/popular", methods=["GET"])
+@cache.cached(timeout=60)  # Cache this endpoint for 60 seconds
+def get_popular_mechanics():
+    
+    mechanics_data = db.session.query(Mechanic).all()
+    
+    # Sort mechanics by the number of service tickets they are assigned to, in descending order
+    mechanics_data.sort(key=lambda m: len(m.service_tickets), reverse=True)
+
+    
+
+    return mechanics_schema.jsonify(mechanics_data), 200
 
 
 #========== Update ===========
