@@ -1,10 +1,38 @@
+from sqlalchemy import select
 from flask import  request, jsonify
 from marshmallow import ValidationError
 
-from .schemas import costumer_schema, costumers_schema
+from .schemas import costumer_schema, costumers_schema, login_schema
+
 from application.models import Costumer, db
 from . import costumer_bp
 from application.extensions import limiter,cache
+from application.utils.util import encode_token, token_required
+
+@costumer_bp.route("/login", methods=['POST'])
+def login():
+    try:
+        credentials = login_schema.load(request.json)# we use the login schema to validate the incoming data, which only requires email and password fields
+        email = credentials['email']
+        password = credentials['password']
+        
+    except ValidationError as err:
+        return jsonify(err.messages), 400
+    
+    query = select(Costumer).where(Costumer.email == email) 
+    user = db.session.execute(query).scalars().first() #Query user table for a user with this email
+
+    if user and user.password == password: #if we have a user associated with the username and the password is correct, validate the password
+        auth_token = encode_token(user.id) #generate an auth token with the user's id as the payload
+
+        response = {
+            "status": "success",
+            "message": "Successfully Logged In",
+            "auth_token": auth_token
+        }
+        return jsonify(response), 200
+    else:
+        return jsonify({'messages': "Invalid email or password"}), 401
 
 @costumer_bp.route("/", methods=["POST"])
 @limiter.limit("5 per day")
@@ -51,18 +79,20 @@ def get_costumers():
     return costumers_schema.jsonify(costumers_data), 200
 
 
+
 #========== Update ===========
 
 
-@costumer_bp.route("/<int:costumer_id>", methods=["PUT"])
+@costumer_bp.route("/", methods=["PUT"])
 @limiter.limit("5 per month")
-def update_costumer(costumer_id):
+@token_required
+def update_costumer(current_costumer_id):
     try:
         costumer_data = costumer_schema.load(request.json, partial=True)
     except ValidationError as err:
         return jsonify(err.messages), 400
 
-    costumer = db.session.get(Costumer, costumer_id)
+    costumer = db.session.get(Costumer, current_costumer_id)
     if not costumer:
         return jsonify({"error": "Costumer not found"}), 404
 
@@ -75,15 +105,28 @@ def update_costumer(costumer_id):
 
 #========== Delete ===========
 
+#DELETE WITHOUT TOKEN
+# @costumer_bp.route("/<int:costumer_id>", methods=["DELETE"])
+# def delete_costumer(costumer_id):
+#     query = select(Costumer).where(Costumer.id == costumer_id)
+#     costumer = db.session.execute(query).scalars().first()
+#     if not costumer:
+#         return jsonify({"error": "Costumer not found"}), 404
 
-@costumer_bp.route("/<int:costumer_id>", methods=["DELETE"])
-@limiter.limit("5 per year")
-def delete_costumer(costumer_id):
-    costumer = db.session.get(Costumer, costumer_id)
+#     db.session.delete(costumer)
+#     db.session.commit()
+#     return jsonify({"message": "Costumer deleted"}), 200
+
+#DELETE WITH TOKEN
+@costumer_bp.route("/", methods=["DELETE"])
+# @limiter.limit("5 per year")
+@token_required
+def delete_costumer(current_costumer_id):
+    query = select(Costumer).where(Costumer.id == current_costumer_id)
+    costumer = db.session.execute(query).scalars().first()
     if not costumer:
         return jsonify({"error": "Costumer not found"}), 404
 
     db.session.delete(costumer)
     db.session.commit()
     return jsonify({"message": "Costumer deleted"}), 200
-

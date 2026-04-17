@@ -26,8 +26,9 @@ class Costumer(Base):
     name: Mapped[str] = mapped_column(String(50), nullable=False)
     phone: Mapped[str] = mapped_column(String(200))
     email: Mapped[str] = mapped_column(String(200), unique=True)
+    password: Mapped[str] = mapped_column(String(50), nullable=False)
 
-    service_tickets: Mapped[List["ServiceTicket"]] = relationship(back_populates="costumer")
+    service_tickets: Mapped[List["ServiceTicket"]] = relationship(back_populates="costumer", cascade="all, delete-orphan") # This sets up a one-to-many relationship between Costumer and ServiceTicket. The cascade option ensures that when a Costumer is deleted, all associated ServiceTickets are also deleted.
 
 class ServiceTicket(Base):
     __tablename__ = "service_tickets"
@@ -36,7 +37,7 @@ class ServiceTicket(Base):
     service_date: Mapped[DateTime] = mapped_column(DateTime)
     service_desc: Mapped[str] = mapped_column(String(200))
 
-    costumer_id: Mapped[int] = mapped_column(ForeignKey("costumers.id"))# ForeignKey to link to costumer one to many relationship
+    costumer_id: Mapped[int] = mapped_column(ForeignKey("costumers.id"), nullable=False)# ForeignKey to link to costumer one to many relationship
     costumer: Mapped[Costumer] = relationship(back_populates="service_tickets")
     mechanics: Mapped[List["Mechanic"]] = relationship(secondary=service_mechanics, back_populates="service_tickets")
 

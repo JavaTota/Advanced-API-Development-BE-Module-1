@@ -7,3 +7,4 @@ class CostumerSchema(ma.SQLAlchemyAutoSchema):
 
 costumer_schema = CostumerSchema()
 costumers_schema = CostumerSchema(many=True)
+login_schema = CostumerSchema(only=["email", "password"])

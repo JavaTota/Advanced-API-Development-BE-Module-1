@@ -1,9 +1,11 @@
+from marshmallow import fields
+
 from application.blueprints.mechanics.schemas import MechanicSchema
 from application.extensions import ma
 from application.models import ServiceTicket
 
 class ServiceTicketSchema(ma.SQLAlchemyAutoSchema):
-    mechanics = ma.List(ma.Nested(lambda: MechanicSchema(only=("id", "name"))))
+    mechanics = fields.Nested(MechanicSchema, many=True)
     class Meta:
         model = ServiceTicket
         include_fk = True

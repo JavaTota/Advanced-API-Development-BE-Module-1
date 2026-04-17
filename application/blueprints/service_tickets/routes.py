@@ -1,20 +1,28 @@
+from select import select
+
 from flask import  request, jsonify
 from marshmallow import ValidationError
 
 from .schemas import service_ticket_schema, service_tickets_schema
-from application.models import ServiceTicket, Mechanic, db
+from application.models import Costumer, ServiceTicket, Mechanic, db
 from . import service_ticket_bp
 from application.extensions import limiter, cache
+from application.utils.util import encode_token, token_required
+
 
 @service_ticket_bp.route("/", methods=["POST"])
-@limiter.limit("5 per day")
-def create_service_ticket():
+# @limiter.limit("5 per day")
+@token_required
+def create_service_ticket(current_costumer_id):
     try:
-        service_ticket_data = service_ticket_schema.load(request.json)
+        service_ticket_data = request.json.copy()
+        service_ticket_data["costumer_id"] = current_costumer_id
+        service_ticket_data = service_ticket_schema.load(service_ticket_data)
         
     except ValidationError as err:
         return jsonify(err.messages), 400
     
+   
     new_service_ticket = ServiceTicket(**service_ticket_data)
     db.session.add(new_service_ticket)
     db.session.commit()
@@ -40,15 +48,29 @@ def get_service_ticket(service_ticket_id):
 
 @service_ticket_bp.route("/", methods=["GET"])
 @cache.cached(timeout=60)  # Cache this endpoint for 60 seconds
-def get_service_tickets():
+@token_required
+def get_service_tickets(current_costumer_id):
     try:
-        service_tickets_data = db.session.query(ServiceTicket).all()
+        query = select(Costumer).where(Costumer.id == current_costumer_id)
+        costumer = db.session.execute(query).scalars().first()
+        service_tickets_data = costumer.service_tickets
+
         
     except ValidationError as err:
         return jsonify(err.messages), 400
      
 
     return service_tickets_schema.jsonify(service_tickets_data), 200
+
+@service_ticket_bp.route("/my_tickets", methods=["GET"])
+@token_required
+def get_my_tickets(current_costumer_id):
+    try:
+        tickets_data = db.session.query(ServiceTicket).filter(ServiceTicket.costumer_id == current_costumer_id).all()
+    except ValidationError as err:
+        return jsonify(err.messages), 400
+
+    return service_tickets_schema.jsonify(tickets_data), 200
 
 
 #========== Update ===========
