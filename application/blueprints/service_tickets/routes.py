@@ -3,8 +3,8 @@ from select import select
 from flask import  request, jsonify
 from marshmallow import ValidationError
 
-from .schemas import service_ticket_schema, service_tickets_schema
-from application.models import Costumer, ServiceTicket, Mechanic, db
+from .schemas import service_ticket_schema, service_tickets_schema, service_ticket_update_schema
+from application.models import  Mechanic, ServiceTicket, db
 from . import service_ticket_bp
 from application.extensions import limiter, cache
 from application.utils.util import encode_token, token_required
@@ -48,13 +48,9 @@ def get_service_ticket(service_ticket_id):
 
 @service_ticket_bp.route("/", methods=["GET"])
 @cache.cached(timeout=60)  # Cache this endpoint for 60 seconds
-@token_required
-def get_service_tickets(current_costumer_id):
+def get_service_tickets():
     try:
-        query = select(Costumer).where(Costumer.id == current_costumer_id)
-        costumer = db.session.execute(query).scalars().first()
-        service_tickets_data = costumer.service_tickets
-
+        service_tickets_data = db.session.query(ServiceTicket).all()
         
     except ValidationError as err:
         return jsonify(err.messages), 400
@@ -76,37 +72,66 @@ def get_my_tickets(current_costumer_id):
 #========== Update ===========
 
 
-@service_ticket_bp.route("/<int:service_ticket_id>/assign_mechanic/<int:mechanic_id>", methods=["PUT"])
-@limiter.limit("5 per month")
-def assign_mechanic_to_service_ticket(service_ticket_id, mechanic_id):
+# @service_ticket_bp.route("/<int:service_ticket_id>/assign_mechanic/<int:mechanic_id>", methods=["PUT"])
+# @limiter.limit("5 per month")
+# def assign_mechanic_to_service_ticket(service_ticket_id, mechanic_id):
 
-    service_ticket = db.session.get(ServiceTicket, service_ticket_id)
+#     service_ticket = db.session.get(ServiceTicket, service_ticket_id)
+#     if not service_ticket:
+#         return jsonify({"error": "service_ticket not found"}), 404
+    
+#     mechanic = db.session.get(Mechanic, mechanic_id)
+#     if not mechanic:
+#         return jsonify({"error": "mechanic not found"}), 404
+    
+#     service_ticket.mechanics.append(mechanic)
+#     db.session.commit()
+#     return service_ticket_schema.jsonify(service_ticket), 200
+
+# @service_ticket_bp.route("/<int:service_ticket_id>/remove_mechanic/<int:mechanic_id>", methods=["PUT"])
+# @limiter.limit("5 per month")
+# def remove_mechanic_from_service_ticket(service_ticket_id, mechanic_id):
+
+#     service_ticket = db.session.get(ServiceTicket, service_ticket_id)
+#     if not service_ticket:
+#         return jsonify({"error": "service_ticket not found"}), 404
+    
+#     mechanic = db.session.get(Mechanic, mechanic_id)
+#     if not mechanic:
+#         return jsonify({"error": "mechanic not found"}), 404
+    
+#     service_ticket.mechanics.remove(mechanic)
+#     db.session.commit()
+#     return service_ticket_schema.jsonify(service_ticket), 200
+
+@service_ticket_bp.route("/<int:service_ticket_id>/edit", methods=["PUT"])
+def edit_service_ticket(service_ticket_id):
+    try:
+        service_ticket_edits = service_ticket_update_schema.load(request.json)
+    except ValidationError as err:
+        return jsonify(err.messages), 400
+
+    service_ticket = db.session.query(ServiceTicket).filter(ServiceTicket.id == service_ticket_id).first()
+
     if not service_ticket:
         return jsonify({"error": "service_ticket not found"}), 404
-    
-    mechanic = db.session.get(Mechanic, mechanic_id)
-    if not mechanic:
-        return jsonify({"error": "mechanic not found"}), 404
-    
-    service_ticket.mechanics.append(mechanic)
+
+    # Update the service ticket fields
+
+
+    for mechanic_id in service_ticket_edits["add_mechanic_ids"]:
+        mechanic = db.session.get(Mechanic, mechanic_id)
+        if mechanic and mechanic not in service_ticket.mechanics:
+            service_ticket.mechanics.append(mechanic)
+
+    for mechanic_id in service_ticket_edits["remove_mechanic_ids"]:
+        mechanic = db.session.get(Mechanic, mechanic_id)
+        if mechanic and mechanic in service_ticket.mechanics:
+            service_ticket.mechanics.remove(mechanic)
+
     db.session.commit()
     return service_ticket_schema.jsonify(service_ticket), 200
 
-@service_ticket_bp.route("/<int:service_ticket_id>/remove_mechanic/<int:mechanic_id>", methods=["PUT"])
-@limiter.limit("5 per month")
-def remove_mechanic_from_service_ticket(service_ticket_id, mechanic_id):
-
-    service_ticket = db.session.get(ServiceTicket, service_ticket_id)
-    if not service_ticket:
-        return jsonify({"error": "service_ticket not found"}), 404
-    
-    mechanic = db.session.get(Mechanic, mechanic_id)
-    if not mechanic:
-        return jsonify({"error": "mechanic not found"}), 404
-    
-    service_ticket.mechanics.remove(mechanic)
-    db.session.commit()
-    return service_ticket_schema.jsonify(service_ticket), 200
 
 #========== Delete ===========
 
