@@ -73,16 +73,23 @@ def get_costumer(costumer_id):
 
 
 @costumer_bp.route("/", methods=["GET"])
-@cache.cached(timeout=60)  # Cache this endpoint for 60 seconds
+# @cache.cached(timeout=60)  # Cache this endpoint for 60 seconds
 def get_costumers():
     try:
-        costumers_data = db.session.query(Costumer).all()
-        
+        page = request.args.get("page", default=1, type=int)
+        per_page = request.args.get("per_page", default=10, type=int)
+
+        query = db.select(Costumer)
+        paginated_costumers = db.paginate(query, page=page, per_page=per_page)
+
+        if not paginated_costumers.items:
+            return jsonify({"message": "No costumers found"}), 404
+
     except ValidationError as err:
         return jsonify(err.messages), 400
      
-
-    return costumers_schema.jsonify(costumers_data), 200
+    
+    return costumers_schema.jsonify(paginated_costumers), 200
 
 
 
