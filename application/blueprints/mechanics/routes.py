@@ -103,3 +103,14 @@ def delete_mechanic(mechanic_id):
     db.session.commit()
     return jsonify({"message": "Mechanic deleted"}), 200
 
+#========== Search Mechanics ===========
+
+@mechanic_bp.route("/search", methods=["GET"])
+def search_mechanics():
+    name_query = request.args.get("name")
+    if not name_query:
+        return jsonify({"error": "Name query parameter is required"}), 400
+
+    mechanics_data = db.session.query(Mechanic).where(Mechanic.name.like(f"%{name_query}%")).all()
+    
+    return mechanics_schema.jsonify(mechanics_data), 200
