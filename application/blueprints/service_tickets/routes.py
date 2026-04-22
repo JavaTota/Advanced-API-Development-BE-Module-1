@@ -66,13 +66,16 @@ def get_my_tickets(current_costumer_id):
     except ValidationError as err:
         return jsonify(err.messages), 400
 
-    return service_tickets_schema.jsonify(tickets_data), 200
+    return jsonify({
+        "total": len(tickets_data),
+        "tickets": service_tickets_schema.dump(tickets_data)
+    }), 200
 
 
 #========== Update ===========
 
 @service_ticket_bp.route("/<int:ticket_id>/add_part", methods=["PUT"])
-def add_part(ticket_id):
+def add_part(ticket_id, inventory_id):
     inventory_id = request.json.get("inventory_id")
     quantity = request.json.get("quantity")
 
@@ -83,13 +86,13 @@ def add_part(ticket_id):
     if not ticket:
         return jsonify({"error": "ticket not found"}), 404
 
-    inventory = db.session.get(Inventory, inventory_id)
-    if not inventory:
+    part = db.session.get(Inventory, inventory_id)
+    if not part:
         return jsonify({"error": "Part not found"}), 404
 
     association = ServiceTicketInventory(
         service_ticket=ticket,
-        inventory=inventory,
+        inventory=part,
         quantity=quantity
     )
 

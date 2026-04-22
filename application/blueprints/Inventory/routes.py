@@ -2,7 +2,7 @@ from flask import  request, jsonify
 from marshmallow import ValidationError
 
 from .schemas import inventory_schema, inventories_schema
-from application.models import  Inventory, inventory, db
+from application.models import  Inventory, db
 from . import inventory_bp
 from application.extensions import limiter, cache
 
@@ -26,7 +26,7 @@ def create_inventory():
 
 #========== Read ===========
 
-@inventory_bp.route("/<int:inventory_id>", methods=["GET"])
+@inventory_bp.route("/parts/<int:inventory_id>", methods=["GET"])
 @cache.cached(timeout=60)  # Cache this endpoint for 60 seconds
 def get_inventory(inventory_id):
     try:
@@ -72,8 +72,8 @@ def update_inventory(inventory_id):
 
 #========== Delete ===========
 
-@inventory_bp.route("/<int:inventory_id>", methods=["DELETE"])
-def delete_inventory(inventory_id):
+@inventory_bp.route("/delete_parts/<int:inventory_id>", methods=["DELETE"])
+def delete_part(inventory_id):
     inventory_data = db.session.get(Inventory, inventory_id)
     if not inventory_data:
         return jsonify({"error": "Part not found"}), 404

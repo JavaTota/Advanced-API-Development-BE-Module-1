@@ -5,6 +5,7 @@ from .models import db
 from .blueprints.costumers import costumer_bp
 from .blueprints.mechanics import mechanic_bp
 from .blueprints.service_tickets import service_ticket_bp
+from .blueprints.Inventory import inventory_bp
 
 def create_app(config_name):
     #initialize app
@@ -23,6 +24,6 @@ def create_app(config_name):
     app.register_blueprint(costumer_bp, url_prefix='/costumers')
     app.register_blueprint(mechanic_bp, url_prefix='/mechanics')
     app.register_blueprint(service_ticket_bp, url_prefix='/service_tickets')
-    app.register_blueprint(service_ticket_bp, url_prefix='/inventory')
+    app.register_blueprint(inventory_bp, url_prefix='/inventory')
 
     return app
