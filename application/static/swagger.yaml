@@ -1,0 +1,241 @@
+#app/static/swagger.yaml
+
+swagger: "2.0"
+info:
+  title: "Service Ticket Management API"
+  description: "RESTful API for managing customers, service tickets, mechanics, and inventory with JWT authentication and relational data handling."
+  version: "1.0.0"
+host: "127.0.0.1:5000"
+schemes:
+  - "http"
+consumes:
+  - "application/json"
+produces:
+  - "application/json"
+
+securityDefinitions:
+  BearerAuth:
+    type: "apiKey"
+    name: "Authorization"
+    in: "header"
+
+# Endpoints
+paths:
+  /costumers/login:
+    post:
+      tags:
+        - costumers
+      summary: "Login endpoint, (generates token)"
+      description: "Validates costumer credentials, generates and return a costumer specific token."
+      parameters:
+        - in: "body"
+          name: "body"
+          description: "Login Credentials"
+          required: true
+          schema:
+            $ref: "#/definitions/LoginCredentials"
+      responses:
+        200:
+        description: "Login successful"
+        schema:
+          $ref: "#/definitions/LoginResponse"
+        examples:
+          application/json:
+            token: "sample_token_1234567890"
+            message: "Login successful"
+            status: "success"
+
+  /costumers:
+    post:
+      tags:
+        - costumers
+      summary: "Create a new costumer"
+      description: "Endpoint to create a new costumer with name, email, DOB, and password."
+      parameters:
+        - in: "body"
+          name: "body"
+          description: "Costumer details for creating a new costumer"
+          required: true
+          schema:
+            $ref: "#/definitions/CreateCostumerPayload"
+      responses:
+        201:
+          description: "Costumer created successfully"
+          schema:
+            $ref: "#/definitions/CreateCostumerResponse"
+          examples:
+            application/json:
+              id: 1
+              name: "John Doe"
+              email: "john.doe@example.com"
+              DOB: "1990-01-01"
+              password: "password123"
+    get:
+      tags:
+        - costumers
+      summary: "Returns all costumers"
+      description: "Endpoint to retrieve a list of all costumers."
+      responses:
+        200:
+          description: "Retrieved costumers Successfully"
+          schema:
+            $ref: "#/definitions/AllCostumers"
+    put:
+      tags:
+        - costumers
+      summary: "Update a costumer"
+      description: "Endpoint to update an existing costumer's details."
+      parameters:
+        - in: "body"
+          name: "body"
+          description: "Costumer details for updating an existing costumer"
+          required: true
+          schema:
+            $ref: "#/definitions/UpdateCostumerPayload"
+      responses:
+        200:
+          description: "Costumer updated successfully"
+          schema:
+            $ref: "#/definitions/UpdateCostumerResponse"
+          examples:
+            application/json:
+              id: 1
+              name: "John Doe Updated"
+              email: "john.doe.updated@example.com"
+              DOB: "1990-01-01"
+              password: "updatedpassword123"
+    delete:
+      tags:
+        - costumers
+      summary: "Delete a costumer"
+      description: "Endpoint to delete an existing costumer."
+      parameters:
+        - in: "body"
+          name: "body"
+          description: "Costumer details for deleting an existing costumer"
+          required: true
+          schema:
+            type: "object"
+            properties:
+              id:
+                type: "integer"
+    responses:
+      200:
+        description: "Costumer deleted successfully"
+        schema:
+          $ref: "#/definitions/DeleteCostumerResponse"
+        examples:
+          application/json:
+            message: "Costumer deleted successfully"
+
+# Data Models
+definitions:
+  LoginCredentials:
+    type: "object"
+    properties:
+      email:
+        type: "string"
+      password:
+        type: "string"
+
+    required:
+      - email
+      - password
+
+  LoginResponse:
+    type: "object"
+    properties:
+      token:
+        type: "string"
+      message:
+        type: "string"
+      status:
+        type: "string"
+
+  CreateCostumerPayload:
+    type: "object"
+    properties:
+      name:
+        type: "string"
+      email:
+        type: "string"
+      DOB:
+        type: "string"
+        format: date
+      password:
+        type: "string"
+
+    required:
+      - name
+      - email
+      - DOB
+      - password
+
+  CreateCostumerResponse:
+    type: "object"
+    properties:
+      id:
+        type: "integer"
+      name:
+        type: "string"
+      email:
+        type: "string"
+      DOB:
+        type: "string"
+      password:
+        type: "string"
+
+  AllCostumers:
+    type: "array"
+    items:
+      type: "object"
+      properties:
+        id:
+          type: "integer"
+        name:
+          type: "string"
+        email:
+          type: "string"
+        DOB:
+          type: "string"
+        password:
+          type: "string"
+
+  UpdateCostumerPayload:
+    type: "object"
+    properties:
+      name:
+        type: "string"
+      email:
+        type: "string"
+      DOB:
+        type: "string"
+        format: "date"
+      password:
+        type: "string"
+
+    required:
+      - name
+      - email
+      - DOB
+      - password
+
+  UpdateCostumerResponse:
+    type: "object"
+    properties:
+      id:
+        type: "integer"
+      name:
+        type: "string"
+      email:
+        type: "string"
+      DOB:
+        type: "string"
+      password:
+        type: "string"
+
+  DeleteCostumerResponse:
+    type: "object"
+    properties:
+      message:
+        type: "string"
