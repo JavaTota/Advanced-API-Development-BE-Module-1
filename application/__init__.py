@@ -23,5 +23,6 @@ def create_app(config_name):
     app.register_blueprint(costumer_bp, url_prefix='/costumers')
     app.register_blueprint(mechanic_bp, url_prefix='/mechanics')
     app.register_blueprint(service_ticket_bp, url_prefix='/service_tickets')
+    app.register_blueprint(service_ticket_bp, url_prefix='/inventory')
 
     return app

@@ -19,6 +19,24 @@ service_mechanics = db.Table(
     Column("mechanic_id",ForeignKey("mechanics.id"), primary_key=True)
 )
 
+class ServiceTicketInventory(Base):
+    __tablename__ = "service_ticket_inventory"
+
+    service_ticket_id: Mapped[int] = mapped_column(
+        ForeignKey("service_tickets.id"),
+        primary_key=True
+    )
+
+    inventory_id: Mapped[int] = mapped_column(
+        ForeignKey("inventory.id"),
+        primary_key=True
+    )
+
+    quantity: Mapped[int] = mapped_column(nullable=False)
+
+    service_ticket: Mapped["ServiceTicket"] = relationship(back_populates="ticket_inventory")
+    inventory: Mapped["Inventory"] = relationship(back_populates="ticket_inventory")
+
 
 class Costumer(Base):
     __tablename__ = "costumers"
@@ -40,6 +58,11 @@ class ServiceTicket(Base):
     costumer_id: Mapped[int] = mapped_column(ForeignKey("costumers.id"), nullable=False)# ForeignKey to link to costumer one to many relationship
     costumer: Mapped[Costumer] = relationship(back_populates="service_tickets")
     mechanics: Mapped[List["Mechanic"]] = relationship(secondary=service_mechanics, back_populates="service_tickets")
+    ticket_inventory: Mapped[List["ServiceTicketInventory"]] = relationship(
+    back_populates="service_ticket",
+    cascade="all, delete-orphan"
+
+)
 
 class Mechanic(Base):
     __tablename__ = "mechanics"
@@ -52,4 +75,14 @@ class Mechanic(Base):
     service_tickets: Mapped[List[ServiceTicket]] = relationship(secondary=service_mechanics, back_populates="mechanics")
 
 
+class Inventory(Base):
+    __tablename__ = "inventory"
 
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    name: Mapped[str] = mapped_column(String(100), nullable=False)
+    price: Mapped[float] = mapped_column(Float, nullable=False)
+
+    ticket_inventory: Mapped[List["ServiceTicketInventory"]] = relationship(
+        back_populates="inventory",
+        cascade="all, delete-orphan"
+    )

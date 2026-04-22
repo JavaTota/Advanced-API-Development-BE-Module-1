@@ -4,7 +4,7 @@ from flask import  request, jsonify
 from marshmallow import ValidationError
 
 from .schemas import service_ticket_schema, service_tickets_schema, service_ticket_update_schema
-from application.models import  Mechanic, ServiceTicket, db
+from application.models import  Inventory, Mechanic, ServiceTicket, ServiceTicketInventory, db
 from . import service_ticket_bp
 from application.extensions import limiter, cache
 from application.utils.util import encode_token, token_required
@@ -70,6 +70,33 @@ def get_my_tickets(current_costumer_id):
 
 
 #========== Update ===========
+
+@service_ticket_bp.route("/<int:ticket_id>/add_part", methods=["PUT"])
+def add_part(ticket_id):
+    inventory_id = request.json.get("inventory_id")
+    quantity = request.json.get("quantity")
+
+    if not inventory_id or not quantity:
+        return jsonify({"error": "inventory_id and quantity required"}), 400
+
+    ticket = db.session.get(ServiceTicket, ticket_id)
+    if not ticket:
+        return jsonify({"error": "ticket not found"}), 404
+
+    inventory = db.session.get(Inventory, inventory_id)
+    if not inventory:
+        return jsonify({"error": "Part not found"}), 404
+
+    association = ServiceTicketInventory(
+        service_ticket=ticket,
+        inventory=inventory,
+        quantity=quantity
+    )
+
+    db.session.add(association)
+    db.session.commit()
+
+    return jsonify({"message": "Part added"}), 200
 
 
 # @service_ticket_bp.route("/<int:service_ticket_id>/assign_mechanic/<int:mechanic_id>", methods=["PUT"])
