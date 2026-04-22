@@ -36,11 +36,11 @@ paths:
             $ref: "#/definitions/LoginCredentials"
       responses:
         200:
-        description: "Login successful"
-        schema:
-          $ref: "#/definitions/LoginResponse"
-        examples:
-          application/json:
+          description: "Login successful"
+          schema:
+            $ref: "#/definitions/LoginResponse"
+          examples:
+            application/json:
             token: "sample_token_1234567890"
             message: "Login successful"
             status: "success"
@@ -85,6 +85,8 @@ paths:
         - costumers
       summary: "Update a costumer"
       description: "Endpoint to update an existing costumer's details."
+      security:
+        - BearerAuth: []
       parameters:
         - in: "body"
           name: "body"
@@ -109,24 +111,16 @@ paths:
         - costumers
       summary: "Delete a costumer"
       description: "Endpoint to delete an existing costumer."
-      parameters:
-        - in: "body"
-          name: "body"
-          description: "Costumer details for deleting an existing costumer"
-          required: true
+      security:
+        - BearerAuth: []
+      responses:
+        200:
+          description: "Costumer deleted successfully"
           schema:
-            type: "object"
-            properties:
-              id:
-                type: "integer"
-    responses:
-      200:
-        description: "Costumer deleted successfully"
-        schema:
-          $ref: "#/definitions/DeleteCostumerResponse"
-        examples:
-          application/json:
-            message: "Costumer deleted successfully"
+            $ref: "#/definitions/DeleteCostumerResponse"
+          examples:
+            application/json:
+              message: "Costumer deleted successfully"
 
 # Data Models
 definitions:
