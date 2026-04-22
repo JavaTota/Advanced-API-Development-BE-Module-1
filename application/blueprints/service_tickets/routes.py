@@ -74,13 +74,12 @@ def get_my_tickets(current_costumer_id):
 
 #========== Update ===========
 
-@service_ticket_bp.route("/<int:ticket_id>/add_part", methods=["PUT"])
+@service_ticket_bp.route("/<int:ticket_id>/add_part/<int:inventory_id>", methods=["PUT"])
 def add_part(ticket_id, inventory_id):
-    inventory_id = request.json.get("inventory_id")
     quantity = request.json.get("quantity")
 
-    if not inventory_id or not quantity:
-        return jsonify({"error": "inventory_id and quantity required"}), 400
+    if not quantity:
+        return jsonify({"error": "quantity required"}), 400
 
     ticket = db.session.get(ServiceTicket, ticket_id)
     if not ticket:
@@ -90,13 +89,23 @@ def add_part(ticket_id, inventory_id):
     if not part:
         return jsonify({"error": "Part not found"}), 404
 
-    association = ServiceTicketInventory(
-        service_ticket=ticket,
-        inventory=part,
-        quantity=quantity
-    )
+    existing = db.session.query(ServiceTicketInventory).filter_by(
+        service_ticket_id=ticket_id,
+        inventory_id=inventory_id
+    ).first()
 
-    db.session.add(association)
+    if existing:
+        existing.quantity += quantity
+        return jsonify({"message": "Part updated"}), 200
+    else:
+       
+        association = ServiceTicketInventory(
+            service_ticket=ticket,
+            inventory=part,
+            quantity=quantity
+        )
+        db.session.add(association)
+
     db.session.commit()
 
     return jsonify({"message": "Part added"}), 200

@@ -28,15 +28,15 @@ def create_inventory():
 
 @inventory_bp.route("/parts/<int:inventory_id>", methods=["GET"])
 @cache.cached(timeout=60)  # Cache this endpoint for 60 seconds
-def get_inventory(inventory_id):
+def get_part(inventory_id):
     try:
-        inventory_data = db.session.get(Inventory, inventory_id)
-        if not inventory_data:
+        part_data = db.session.get(Inventory, inventory_id)
+        if not part_data:
             return jsonify({"error": "Part not found"}), 404
     except ValidationError as err:
         return jsonify(err.messages), 400
 
-    return inventory_schema.jsonify(inventory_data), 200
+    return inventory_schema.jsonify(part_data), 200
 
 @inventory_bp.route("/", methods=["GET"])
 @cache.cached(timeout=60)  # Cache this endpoint for 60 seconds
