@@ -26,7 +26,7 @@ def login():
     user = db.session.execute(query).scalars().first() #Query user table for a user with this email
 
     if user and user.password == password: #if we have a user associated with the username and the password is correct, validate the password
-        auth_token = encode_token(user.id) #generate an auth token with the user's id as the payload
+        auth_token = encode_token(user.id, "costumer") #generate an auth token with the user's id as the payload
 
         response = {
             "status": "success",
@@ -99,15 +99,18 @@ def get_costumers():
 @costumer_bp.route("/", methods=["PUT"])
 @limiter.limit("5 per month")
 @token_required
-def update_costumer(current_costumer_id):
+def update_costumer(current_id, current_role):
     try:
         costumer_data = costumer_schema.load(request.json, partial=True)
     except ValidationError as err:
         return jsonify(err.messages), 400
 
-    costumer = db.session.get(Costumer, current_costumer_id)
+    costumer = db.session.get(Costumer, current_id)
     if not costumer:
         return jsonify({"error": "Costumer not found"}), 404
+    
+    if current_role != "costumer":
+        return jsonify({"error": "Unauthorized"}), 403
 
     for key, value in costumer_data.items():
         setattr(costumer, key, value)
@@ -134,11 +137,14 @@ def update_costumer(current_costumer_id):
 @costumer_bp.route("/", methods=["DELETE"])
 # @limiter.limit("5 per year")
 @token_required
-def delete_costumer(current_costumer_id):
-    query = select(Costumer).where(Costumer.id == current_costumer_id)
+def delete_costumer(current_id, current_role):
+    query = select(Costumer).where(Costumer.id == current_id)
     costumer = db.session.execute(query).scalars().first()
     if not costumer:
         return jsonify({"error": "Costumer not found"}), 404
+    
+    if current_role != "costumer":
+        return jsonify({"error": "Unauthorized"}), 403
 
     db.session.delete(costumer)
     db.session.commit()

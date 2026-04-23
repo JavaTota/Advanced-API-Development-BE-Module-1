@@ -1,10 +1,41 @@
+from sqlalchemy import select
 from flask import  request, jsonify
 from marshmallow import ValidationError
 
-from .schemas import mechanic_schema, mechanics_schema
+from application.utils.util import encode_token, token_required
+
+from .schemas import mechanic_schema, mechanics_schema, login_schema
 from application.models import  Mechanic, db
 from . import mechanic_bp
 from application.extensions import limiter, cache
+
+
+@mechanic_bp.route("/login", methods=['POST'])
+def login():
+    try:
+        credentials = login_schema.load(request.json)# we use the login schema to validate the incoming data, which only requires email and password fields
+        email = credentials['email']
+        password = credentials['password']
+        
+    except ValidationError as err:
+        return jsonify(err.messages), 400
+    
+    query = select(Mechanic).where(Mechanic.email == email) 
+    mechanic = db.session.execute(query).scalars().first() #Query mechanic table for a mechanic with this email
+
+    if mechanic and mechanic.password == password: #if we have a mechanic associated with the email and the password is correct, validate the password
+        auth_token = encode_token(mechanic.id, "mechanic") #generate an auth token with the mechanic's id as the payload
+
+        response = {
+            "status": "success",
+            "message": "Successfully Logged In",
+            "auth_token": auth_token
+        }
+        return jsonify(response), 200
+    else:
+        return jsonify({'messages': "Invalid email or password"}), 401
+
+#========= Create ===========
 
 @mechanic_bp.route("/", methods=["POST"])
 @limiter.limit("5 per day")
@@ -92,12 +123,17 @@ def update_mechanic(mechanic_id):
 #========== Delete ===========
 
 
-@mechanic_bp.route("/<int:mechanic_id>", methods=["DELETE"])
-@limiter.limit("5 per year")
-def delete_mechanic(mechanic_id):
-    mechanic = db.session.get(Mechanic, mechanic_id)
+@mechanic_bp.route("/", methods=["DELETE"])
+# @limiter.limit("5 per year")
+@token_required
+def delete_mechanic(current_id, current_role):
+    query = select(Mechanic).where(Mechanic.id == current_id)
+    mechanic = db.session.execute(query).scalars().first()
     if not mechanic:
         return jsonify({"error": "Mechanic not found"}), 404
+
+    if current_role != "mechanic":
+        return jsonify({"error": "Unauthorized"}), 403
 
     db.session.delete(mechanic)
     db.session.commit()
