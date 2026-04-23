@@ -101,17 +101,21 @@ def get_popular_mechanics():
 #========== Update ===========
 
 
-@mechanic_bp.route("/<int:mechanic_id>", methods=["PUT"])
+@mechanic_bp.route("/", methods=["PUT"])
 @limiter.limit("5 per month")
-def update_mechanic(mechanic_id):
+@token_required
+def update_mechanic(current_id, current_role):
     try:
         mechanic_data = mechanic_schema.load(request.json, partial=True)
     except ValidationError as err:
         return jsonify(err.messages), 400
 
-    mechanic = db.session.get(Mechanic, mechanic_id)
+    mechanic = db.session.get(Mechanic, current_id)
     if not mechanic:
         return jsonify({"error": "Mechanic not found"}), 404
+
+    if current_role != "mechanic":
+        return jsonify({"error": "Unauthorized"}), 403
 
     for key, value in mechanic_data.items():
         setattr(mechanic, key, value)
