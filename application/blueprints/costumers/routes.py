@@ -41,7 +41,7 @@ def login():
 #========= Create ===========
 
 @costumer_bp.route("/", methods=["POST"])
-@limiter.limit("5 per day")
+# @limiter.limit("5 per day")
 def create_costumer():
     try:
         costumer_data = costumer_schema.load(request.json)

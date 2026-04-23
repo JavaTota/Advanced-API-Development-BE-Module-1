@@ -11,11 +11,12 @@ class ServiceTicketSchema(ma.SQLAlchemyAutoSchema):
     class Meta:
         model = ServiceTicket
         include_fk = True
+        dump_only = ("id", "service_date") # We set service_date to dump_only because we want it to be automatically set to the current date and time when a new service ticket is created, rather than being provided by the client in the request data.
 
 # This schema will be used for updating service tickets, allowing us to specify which mechanics to add or remove from a ticket without needing to provide all the other fields.
 class ServiceTicketUpdateSchema(ma.Schema):
-    add_mechanic_ids = fields.List(fields.Integer(), required=True)
-    remove_mechanic_ids = fields.List(fields.Integer(), required=True)
+    add_mechanic_ids = fields.List(fields.Integer())
+    remove_mechanic_ids = fields.List(fields.Integer())
 
     class Meta:
         fields = ("add_mechanic_ids", "remove_mechanic_ids")

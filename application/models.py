@@ -1,8 +1,9 @@
+from datetime import datetime
 from typing import List
 
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
-from sqlalchemy import  Column, DateTime, Float, ForeignKey, String
+from sqlalchemy import  Column, DateTime, Float, ForeignKey, String, func
 
 
 
@@ -52,7 +53,7 @@ class ServiceTicket(Base):
     __tablename__ = "service_tickets"
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     VIN: Mapped[str] = mapped_column(String(50), nullable=False)
-    service_date: Mapped[DateTime] = mapped_column(DateTime)
+    service_date: Mapped[datetime] = mapped_column(DateTime, default=func.now())
     service_desc: Mapped[str] = mapped_column(String(200))
 
     costumer_id: Mapped[int] = mapped_column(ForeignKey("costumers.id"), nullable=False)# ForeignKey to link to costumer one to many relationship

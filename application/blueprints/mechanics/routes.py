@@ -10,6 +10,8 @@ from . import mechanic_bp
 from application.extensions import limiter, cache
 
 
+#========== Authentication ===========
+
 @mechanic_bp.route("/login", methods=['POST'])
 def login():
     try:
@@ -73,14 +75,22 @@ def get_mechanic(mechanic_id):
 @cache.cached(timeout=60)  # Cache this endpoint for 60 seconds
 def get_mechanics():
     try:
-        mechanics_data = db.session.query(Mechanic).all()
-        
+        page = request.args.get("page", default=1, type=int)
+        per_page = request.args.get("per_page", default=10, type=int)
+
+        query = db.select(Mechanic)
+        paginated_mechanics = db.paginate(query, page=page, per_page=per_page)
+
+        if not paginated_mechanics.items:
+            return jsonify({"message": "No mechanics found"}), 404
+
     except ValidationError as err:
         return jsonify(err.messages), 400
     
+
     
 
-    return mechanics_schema.jsonify(mechanics_data), 200
+    return mechanics_schema.jsonify(paginated_mechanics), 200
 
 #========= Get Popular Mechanics(sorting) ===========
 

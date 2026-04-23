@@ -13,14 +13,17 @@ from application.utils.util import encode_token, token_required
 @service_ticket_bp.route("/", methods=["POST"])
 # @limiter.limit("5 per day")
 @token_required
-def create_service_ticket(current_costumer_id):
+def create_service_ticket(current_id, current_role):
     try:
         service_ticket_data = request.json.copy()
-        service_ticket_data["costumer_id"] = current_costumer_id
+        service_ticket_data["costumer_id"] = current_id
         service_ticket_data = service_ticket_schema.load(service_ticket_data)
         
     except ValidationError as err:
         return jsonify(err.messages), 400
+    
+    if current_role != "costumer":
+        return jsonify({"error": "Unauthorized"}), 403
     
    
     new_service_ticket = ServiceTicket(**service_ticket_data)
@@ -60,11 +63,14 @@ def get_service_tickets():
 
 @service_ticket_bp.route("/my_tickets", methods=["GET"])
 @token_required
-def get_my_tickets(current_costumer_id):
+def get_my_tickets(current_id, current_role):
     try:
-        tickets_data = db.session.query(ServiceTicket).filter(ServiceTicket.costumer_id == current_costumer_id).all()
+        tickets_data = db.session.query(ServiceTicket).filter(ServiceTicket.costumer_id == current_id).all()
     except ValidationError as err:
         return jsonify(err.messages), 400
+    
+    if current_role != "costumer":
+        return jsonify({"error": "Unauthorized"}), 403
 
     return jsonify({
         "total": len(tickets_data),
@@ -74,8 +80,8 @@ def get_my_tickets(current_costumer_id):
 
 #========== Update ===========
 
-@service_ticket_bp.route("/<int:ticket_id>/add_part/<int:inventory_id>", methods=["PUT"])
-def add_part(ticket_id, inventory_id):
+@service_ticket_bp.route("/<int:ticket_id>/edit_parts/<int:inventory_id>", methods=["PUT"])
+def edit_parts(ticket_id, inventory_id):
     quantity = request.json.get("quantity")
 
     if not quantity:
@@ -110,60 +116,25 @@ def add_part(ticket_id, inventory_id):
 
     return jsonify({"message": "Part added"}), 200
 
-
-# @service_ticket_bp.route("/<int:service_ticket_id>/assign_mechanic/<int:mechanic_id>", methods=["PUT"])
-# @limiter.limit("5 per month")
-# def assign_mechanic_to_service_ticket(service_ticket_id, mechanic_id):
-
-#     service_ticket = db.session.get(ServiceTicket, service_ticket_id)
-#     if not service_ticket:
-#         return jsonify({"error": "service_ticket not found"}), 404
-    
-#     mechanic = db.session.get(Mechanic, mechanic_id)
-#     if not mechanic:
-#         return jsonify({"error": "mechanic not found"}), 404
-    
-#     service_ticket.mechanics.append(mechanic)
-#     db.session.commit()
-#     return service_ticket_schema.jsonify(service_ticket), 200
-
-# @service_ticket_bp.route("/<int:service_ticket_id>/remove_mechanic/<int:mechanic_id>", methods=["PUT"])
-# @limiter.limit("5 per month")
-# def remove_mechanic_from_service_ticket(service_ticket_id, mechanic_id):
-
-#     service_ticket = db.session.get(ServiceTicket, service_ticket_id)
-#     if not service_ticket:
-#         return jsonify({"error": "service_ticket not found"}), 404
-    
-#     mechanic = db.session.get(Mechanic, mechanic_id)
-#     if not mechanic:
-#         return jsonify({"error": "mechanic not found"}), 404
-    
-#     service_ticket.mechanics.remove(mechanic)
-#     db.session.commit()
-#     return service_ticket_schema.jsonify(service_ticket), 200
-
-@service_ticket_bp.route("/<int:service_ticket_id>/edit", methods=["PUT"])
+@service_ticket_bp.route("/<int:service_ticket_id>/edit_mechanics", methods=["PUT"])
 def edit_service_ticket(service_ticket_id):
     try:
-        service_ticket_edits = service_ticket_update_schema.load(request.json)
+        service_ticket_edits = service_ticket_update_schema.load(request.json, partial=True)
     except ValidationError as err:
         return jsonify(err.messages), 400
 
-    service_ticket = db.session.query(ServiceTicket).filter(ServiceTicket.id == service_ticket_id).first()
+    service_ticket = db.session.get(ServiceTicket, service_ticket_id)
 
     if not service_ticket:
         return jsonify({"error": "service_ticket not found"}), 404
 
     # Update the service ticket fields
-
-
-    for mechanic_id in service_ticket_edits["add_mechanic_ids"]:
+    for mechanic_id in service_ticket_edits.get("add_mechanic_ids", []):
         mechanic = db.session.get(Mechanic, mechanic_id)
         if mechanic and mechanic not in service_ticket.mechanics:
             service_ticket.mechanics.append(mechanic)
 
-    for mechanic_id in service_ticket_edits["remove_mechanic_ids"]:
+    for mechanic_id in service_ticket_edits.get("remove_mechanic_ids", []):
         mechanic = db.session.get(Mechanic, mechanic_id)
         if mechanic and mechanic in service_ticket.mechanics:
             service_ticket.mechanics.remove(mechanic)
